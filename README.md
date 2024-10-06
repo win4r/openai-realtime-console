@@ -1,4 +1,5 @@
 # 如有问题请联系我的微信 stoeng
+# 在OpenAI项目代码的基础上加入了新闻搜索功能
 # OpenAI Realtime Console
 
 The OpenAI Realtime Console is intended as an inspector and interactive API reference
