@@ -27,6 +27,8 @@ import { Map } from '../components/Map';
 import './ConsolePage.scss';
 import { isJsxOpeningLikeElement } from 'typescript';
 
+
+
 /**
  * Type for result from get_weather() function call
  */
@@ -455,6 +457,91 @@ export function ConsolePage() {
       }
     );
 
+    client.addTool(
+      {
+        name: 'google_search',
+        description: 'Performs a Google News search and returns the top 3 results.',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'The search query to be used.',
+            },
+          },
+          required: ['query'],
+        },
+      },
+      async ({ query }: { query: string }) => {
+        return await performGoogleSearch(query);
+      }
+    );
+    
+    
+  
+
+
+    // //新增
+    // async function performGoogleSearch(query: string): Promise<Array<{title: string, description: string, url: string, source: string, date: string}>> {
+    //   console.log('Starting Google search for:', query);
+    //   try {
+    //     const response = await fetch(`http://localhost:3001/api/news?q=${encodeURIComponent(query)}`);
+    
+    //     if (!response.ok) {
+    //       throw new Error(`HTTP error! status: ${response.status}`);
+    //     }
+    
+    //     const results = await response.json();
+    //     console.log('Search results:', results);
+    
+    //     return results.map((item: any) => ({
+    //       title: item.title,
+    //       description: item.snippet,
+    //       url: item.link,
+    //       source: item.source.name,
+    //       date: item.date
+    //     }));
+    //   } catch (error) {
+    //     console.error('Error in performGoogleSearch:', error);
+    //     return [{
+    //       title: 'Error',
+    //       description: `Failed to perform Google search: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    //       url: '',
+    //       source: '',
+    //       date: ''
+    //     }];
+    //   }
+    // }
+    
+    
+    async function performGoogleSearch(query: string): Promise<Array<{title: string, url: string}>> {
+      console.log('Starting Google search for:', query);
+      try {
+        const response = await fetch(`http://localhost:3001/api/news?q=${encodeURIComponent(query)}`);
+    
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    
+        const results = await response.json();
+        console.log('Search results:', results);
+    
+        return results.map((item: any) => ({
+          title: item.title,
+          url: item.link
+        }));
+      } catch (error) {
+        console.error('Error in performGoogleSearch:', error);
+        return [{
+          title: 'Error',
+          url: ''
+        }];
+      }
+    }
+    
+
+
+    
     // handle realtime events from client + server for event logging
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
       setRealtimeEvents((realtimeEvents) => {
@@ -622,9 +709,84 @@ export function ConsolePage() {
                     </div>
                     <div className={`speaker-content`}>
                       {/* tool response */}
-                      {conversationItem.type === 'function_call_output' && (
-                        <div>{conversationItem.formatted.output}</div>
+                      {/* {conversationItem.type === 'function_call_output' && 
+                      conversationItem.formatted.tool?.name === 'google_search' && (
+                        <div>
+                          <h4>Google Search Results:</h4>
+                          {(() => {
+                            let results;
+                            try {
+                              results = typeof conversationItem.formatted.output === 'string'
+                                ? JSON.parse(conversationItem.formatted.output)
+                                : conversationItem.formatted.output;
+                              
+                              if ('error' in results) {
+                                return <p>Error: {results.error} {results.details && `(${results.details})`}</p>;
+                              }
+
+                              if (!Array.isArray(results)) {
+                                console.error('Unexpected search results format:', results);
+                                return <p>Unexpected search results format.</p>;
+                              }
+                              
+                              return results.map((result, index) => (
+                                <div key={index}>
+                                  <h5>{result.title}</h5>
+                                  <p>{result.description}</p>
+                                  <a href={result.url} target="_blank" rel="noopener noreferrer">
+                                    {result.url}
+                                  </a>
+                                </div>
+                              ));
+                            } catch (error) {
+                              console.error('Error parsing search results:', error);
+                              return <p>Error displaying search results.</p>;
+                            }
+                          })()}
+                        </div>
+                      )} */}
+                      {conversationItem.type === 'function_call_output' && 
+                      conversationItem.formatted.tool?.name === 'google_search' && (
+                        <div>
+                          <h4>Latest News:</h4>
+                          {(() => {
+                            let results;
+                            try {
+                              results = typeof conversationItem.formatted.output === 'string'
+                                ? JSON.parse(conversationItem.formatted.output)
+                                : conversationItem.formatted.output;
+                              
+                              if ('error' in results) {
+                                return <p>Error: {results.error} {results.details && `(${results.details})`}</p>;
+                              }
+
+                              if (!Array.isArray(results)) {
+                                console.error('Unexpected search results format:', results);
+                                return <p>Unexpected search results format.</p>;
+                              }
+                              
+                              return (
+                                <ol>
+                                  {results.map((result, index) => (
+                                    <li key={index}>
+                                      {result.description}{' '}
+                                      <a href={result.url} target="_blank" rel="noopener noreferrer">
+                                        [Read more]
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ol>
+                              );
+                            } catch (error) {
+                              console.error('Error parsing search results:', error);
+                              return <p>Error displaying search results.</p>;
+                            }
+                          })()}
+                        </div>
                       )}
+
+
+
                       {/* tool call */}
                       {!!conversationItem.formatted.tool && (
                         <div>
