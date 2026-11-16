@@ -1,3 +1,5 @@
+# [🚀观看我的哔哩哔哩视频](https://space.bilibili.com/3493277319825652)
+
 # 如有问题请联系我的微信 stoeng
 # 在OpenAI项目代码的基础上加入了新闻搜索功能
 # OpenAI Realtime Console
